@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Wordbrain Solver</string>
+    <string name="ui_need_wordlist">This app needs a wordlist with valid words to solve the puzzles.\nPlease follow the instructions to download one.</string>
+    <string name="ui_dictcc_explanation">The app is designed to work with a wordlist from dict.cc.\nThe license of these wordlists prohibits the inclusion in the app.\nClick the button below to open your browser and complete the download of the wordlist. Choose a list which starts with your desired language (e.g. you speak english so you can choose EN -> DE).</string>
+    <string name="ui_download">Download</string>
+    <string name="ui_after_download">If you have already downloaded a wordlist you can add it to the app with the button below.\nThis could take a while.</string>
+    <string name="ui_add_wordlist">Add wordlist</string>
+    <string name="url_dictcc_download">https://www1.dict.cc/translation_file_request.php?l=e</string>
+    <string name="ui_toast_permission">Please grant this permission for the app to work.</string>
+    <string name="ui_toast_error_read">Something went wrong reading this file!</string>
+    <string name="ui_toast_error_write">Wordlist could not be written!</string>
+    <string name="ui_toast_success">Wordlist saved!</string>
+    <string name="ui_got_wordlist">Wordlist found!</string>
+    <string name="ui_lines_processed">%d lines read…</string>
+    <string name="ui_ok">OK</string>
+    <string name="ui_wait_for_wordlist">Please wait till wordlist is loaded…</string>
+    <string name="ui_already_running">Problem solving already in progress…</string>
+    <string name="ui_hint_problem">Problem</string>
+    <string name="ui_hint_lengths">word lengths (e.g. 5,7,6)</string>
+    <string name="ui_toast_inconsistent_line_length">All lines need to have the same length (rectangular shape)!</string>
+    <string name="ui_toast_unsolvable_chars_mismatch">Puzzle is unsolvable! Words to find don\'t match given characters!</string>
+    <string name="ui_toast_unsolvabe_invalid_chars">Puzzle contains invalid characters!</string>
+    <string name="ui_toast_unsolvable_invalid_length">Invalid length!</string>
+    <string name="ui_toast_start_solving">Starting to solve puzzle… Please wait.</string>
+    <string name="ui_got_results">We got %d results!</string>
+    <string name="ui_results_solution">Solution</string>
+    <string name="ui_results_word">Word</string>
+    <string name="ui_results_leave">Leave</string>
+    <string name="ui_toast_error_word_not_found">Could not find word %d</string>
+</resources>

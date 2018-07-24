@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wordbrain Solver</string>
+    <string name="ui_need_wordlist">Die App benötigt eine Wortliste mit gültigen Wörtern um Rätsel lösen zu können.\nBitte folgen Sie den Anweisungen um eine Wortliste herunterzuladen.</string>
+    <string name="ui_dictcc_explanation">Diese App wurde für Wortlisten von dict.cc entwickelt.\nDie Lizenz dieser Wortlisten verbietet eine Verbreitung mit dieser App.\nKlicke auf den Knopf unetr diesem Text um deinen Browser zu öffnen und schließe den Download der Wortliste ab. Wähle eine Liste die mit der gewünschten Sprache beginnt (z.B. für Deutsch kann DE -> EN gewählt werden).</string>
+    <string name="ui_download">Herunterladen</string>
+    <string name="ui_after_download">Wenn du schon eine Wortliste hast, dann drücke den unteren Knopf um sie hinzuzufügen.\nDas könnte eine Weile dauern.</string>
+    <string name="ui_add_wordlist">Wortliste hinzufügen</string>
+    <string name="url_dictcc_download">https://www1.dict.cc/translation_file_request.php?l=d</string>
+    <string name="ui_toast_permission">Bitte erlauben Sie der App auf Dateien zu zugreifen um weiter zu funktionieren.</string>
+    <string name="ui_toast_error_read">Die Datei konnte nicht gelesen werden!</string>
+    <string name="ui_toast_error_write">Wortliste konnte nicht gespeichert werden!</string>
+    <string name="ui_toast_success">Wortliste gespeichert!</string>
+    <string name="ui_got_wordlist">Wortliste gefunden!</string>
+    <string name="ui_lines_processed">%d Zeilen gelesen…</string>
+    <string name="ui_ok">OK</string>
+    <string name="ui_wait_for_wordlist">Bitte wartet bis die Wortliste geladen wurde…</string>
+    <string name="ui_already_running">Es wird bereits ein Problem gelöst…</string>
+    <string name="ui_hint_problem">Problem</string>
+    <string name="ui_hint_lengths">Wortlängen (z.B. 5,7,6)</string>
+    <string name="ui_toast_inconsistent_line_length">Alle Zeilen müssen gleich lang sein (Rechteck)!</string>
+    <string name="ui_toast_unsolvable_chars_mismatch">Rätsel kann nicht gelöst werden! Wortlängen passen nicht zum Problem!</string>
+    <string name="ui_toast_unsolvabe_invalid_chars">Rätsel enthält ungültige Buchstaben!</string>
+    <string name="ui_toast_unsolvable_invalid_length">Ungültige Länge!</string>
+    <string name="ui_toast_start_solving">Beginne lösen des Rätsels… Bitte warten.</string>
+    <string name="ui_got_results">%d Lösungen gefunden!</string>
+    <string name="ui_results_solution">Lösung</string>
+    <string name="ui_results_word">Wort</string>
+    <string name="ui_results_leave">Verlassen</string>
+    <string name="ui_toast_error_word_not_found">Konnte Wort %d nicht finden</string>
+</resources>
