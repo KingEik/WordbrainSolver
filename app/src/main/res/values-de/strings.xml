@@ -23,9 +23,11 @@
     <string name="ui_toast_unsolvabe_invalid_chars">Rätsel enthält ungültige Buchstaben!</string>
     <string name="ui_toast_unsolvable_invalid_length">Ungültige Länge!</string>
     <string name="ui_toast_start_solving">Beginne lösen des Rätsels… Bitte warten.</string>
-    <string name="ui_got_results">%d Lösungen gefunden!</string>
+    <string name="ui_got_results">%d Lösungen gefunden! (bis Wort %d)</string>
     <string name="ui_results_solution">Lösung</string>
     <string name="ui_results_word">Wort</string>
     <string name="ui_results_leave">Verlassen</string>
     <string name="ui_toast_error_word_not_found">Konnte Wort %d nicht finden</string>
+    <string name="ui_results_correct">Richtig</string>
+    <string name="ui_results_wrong">Falsch</string>
 </resources>

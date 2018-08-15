@@ -259,4 +259,11 @@ class LetterMatrix {
         return characters.size();
     }
 
+    public boolean isBasedOnInvalid() {
+        for (Solution s : foundSolutions)
+            if (s.isInvalid())
+                return true;
+        return false;
+    }
+
 }

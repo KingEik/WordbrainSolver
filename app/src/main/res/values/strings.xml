@@ -22,9 +22,11 @@
     <string name="ui_toast_unsolvabe_invalid_chars">Puzzle contains invalid characters!</string>
     <string name="ui_toast_unsolvable_invalid_length">Invalid length!</string>
     <string name="ui_toast_start_solving">Starting to solve puzzle… Please wait.</string>
-    <string name="ui_got_results">We got %d results!</string>
+    <string name="ui_got_results">We got %d results! (up to word %d)</string>
     <string name="ui_results_solution">Solution</string>
     <string name="ui_results_word">Word</string>
     <string name="ui_results_leave">Leave</string>
     <string name="ui_toast_error_word_not_found">Could not find word %d</string>
+    <string name="ui_results_correct">Correct</string>
+    <string name="ui_results_wrong">Wrong</string>
 </resources>

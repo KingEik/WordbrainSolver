@@ -70,12 +70,41 @@ class Problem {
         return words.length;
     }
 
+    public int getSolvedWordCount() {
+        int lastDoneWord = -1;
+        for (int i = words.length - 1; i >= 0; i--) {
+            if (words[i].isSolved()) {
+                lastDoneWord = i;
+                break;
+            }
+        }
+        return ++lastDoneWord;
+    }
+
     public boolean isWordSolved(int index) {
         return index >= 0 && index < words.length && words[index].isSolved();
     }
 
     public List<Solution> getFinalResults() {
         return words[words.length - 1].getPossibleSolutions();
+    }
+
+    public List<Solution> getLatestResults() {
+        int lastDoneWord = -1;
+        for (int i = words.length - 1; i >= 0; i--) {
+            if (words[i].isSolved()) {
+                lastDoneWord = i;
+                break;
+            }
+        }
+        return getResultsForWord(lastDoneWord);
+    }
+
+    public List<Solution> getResultsForWord(int index) {
+        if (index >= 0 && index < words.length) {
+            return words[index].getPossibleSolutions();
+        }
+        return null;
     }
 
     private void refreshWordLengths() {
@@ -202,6 +231,7 @@ class Problem {
         solvers = new ArrayList<>(numSolvers);
 
         Log.v("startSolvers", "Will start " + numSolvers + " threads...");
+        int skipped = 0;
 
         for (int i = 0; i < numSolvers; i++) {
 
@@ -212,9 +242,14 @@ class Problem {
             LetterMatrix source;
 
             if (lastDoneWord == -1) {
-                source = this.matrix;
+                source = this.matrix.getCopy();
             } else {
                 source = new LetterMatrix(words[lastDoneWord].getPossibleSolutions().get(solutionId));
+                if (source.isBasedOnInvalid()) {
+                    i += total - 1;
+                    skipped++;
+                    continue;
+                }
             }
 
             final LetterMatrix workingMatrix = source;
@@ -229,6 +264,10 @@ class Problem {
             t.start();
 
             solvers.add(t);
+        }
+
+        if (skipped > 0) {
+            Log.v("startSolvers", "Skipped creating " + (skipped * total) + " threads");
         }
 
         return true;
@@ -265,12 +304,14 @@ class Problem {
         // - + go back to start (exclude already taken paths ^^)
         // + if no paths left: terminate
 
-        LetterMatrix copy = letterMatrix.getCopy();
-        copy.addSolutionLetter(startRow, startCol);
-        recursionStep(word, copy); // work on a copy so we don't accidentally mess up other threads data
+        letterMatrix.addSolutionLetter(startRow, startCol);
+        recursionStep(word, letterMatrix); // work on a copy so we don't accidentally mess up other threads data
     }
 
     private void recursionStep(Word word, LetterMatrix matrix) {
+        if (matrix.isBasedOnInvalid())
+            return;
+
         String wordSoFar = matrix.getCurrentSolutionWord();
 
         //Log.v("recursionStep", wordSoFar);
@@ -321,6 +362,8 @@ class Problem {
                     recursionStep(word, matrix);
                     matrix.removeLastSolutionLetter();
                 }
+                if (matrix.isBasedOnInvalid())
+                    return;
             }
         }
 

@@ -7,6 +7,8 @@ class Solution {
     int[][] solutionPath;
     char[][] lettersBeforeSolution;
 
+    private boolean invalid = false;
+
     public Solution(String foundWord, int[][] solutionPath, char[][] lettersBeforeSolution, Solution previousSolution) {
         this.previousSolution = previousSolution;
         this.foundWord = foundWord;
@@ -24,5 +26,13 @@ class Solution {
             }
         }
 
+    }
+
+    public void setSolutionInvalid() {
+        this.invalid = true;
+    }
+
+    public boolean isInvalid() {
+        return invalid || (previousSolution != null && previousSolution.isInvalid());
     }
 }

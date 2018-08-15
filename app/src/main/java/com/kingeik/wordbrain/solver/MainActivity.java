@@ -18,6 +18,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Scanner;
 
@@ -32,9 +33,11 @@ public class MainActivity extends AppCompatActivity {
     public static List<String> wordlist;
 
     Thread wordlistLoader = null, problemSolver = null;
+    boolean continueSolving, autoAdvance;
     Problem lastProblem;
-    List<Solution> solutions;
-    int currentSolutionIndex, currentWordIndex;
+    List<Solution> latestSolutions;
+    Solution shownSolution;
+    int currentSolutionIndex, currentWordIndex, solvedWordCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,78 +96,104 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             baseLayout.addView(btn);
-        } else if (solutions != null) {
+        } else if (latestSolutions != null) {
             // we got some results, show them!
+
+            List<Solution> allSolutions = latestSolutions;
+
+            // local variables to prevent interference from other threads
+            final int solvedWordCount = this.solvedWordCount;
+            final List<Solution> shownSolutions = new ArrayList<>();
+            final long startTime = Calendar.getInstance().getTimeInMillis();
+
+            for (Solution s : allSolutions) {
+                if (!s.isInvalid()) {
+                    shownSolutions.add(s);
+                }
+            }
+
+            if (autoAdvance && currentWordIndex < solvedWordCount - 1) {
+                currentWordIndex++;
+            }
+
+            autoAdvance = (currentWordIndex >= solvedWordCount);
+
+            currentSolutionIndex = Math.min(shownSolutions.size() - 1, currentSolutionIndex);
+            currentWordIndex = Math.min(solvedWordCount - 1, currentWordIndex);
+
             TextView tv = new TextView(this);
-            tv.setText(String.format(getString(R.string.ui_got_results), solutions.size()));
+            tv.setText(String.format(getString(R.string.ui_got_results), shownSolutions.size(), solvedWordCount));
             baseLayout.addView(tv);
 
-            LinearLayout ll = new LinearLayout(this);
-            ll.setOrientation(LinearLayout.HORIZONTAL);
+            Button btn;
+            if (shownSolutions.size() > 0) {
+                LinearLayout ll = new LinearLayout(this);
+                ll.setOrientation(LinearLayout.HORIZONTAL);
 
-            Button btn = new Button(this);
-            btn.setText("<<");
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (currentSolutionIndex > 0) {
-                        currentSolutionIndex--;
-                        renderUIOnUIThread();
+                btn = new Button(this);
+                btn.setText("<<");
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (currentSolutionIndex > 0) {
+                            currentSolutionIndex--;
+                            renderUIOnUIThread();
+                        }
                     }
-                }
-            });
-            ll.addView(btn);
+                });
+                ll.addView(btn);
 
-            btn = new Button(this);
-            btn.setText("<");
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (currentWordIndex > 0) {
-                        currentWordIndex--;
-                        renderUIOnUIThread();
+                btn = new Button(this);
+                btn.setText("<");
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (currentWordIndex > 0) {
+                            currentWordIndex--;
+                            renderUIOnUIThread();
+                        }
                     }
-                }
-            });
-            ll.addView(btn);
+                });
+                ll.addView(btn);
 
-            btn = new Button(this);
-            btn.setText(">");
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (currentWordIndex < lastProblem.getWordCount() - 1) {
-                        currentWordIndex++;
-                        renderUIOnUIThread();
+                btn = new Button(this);
+                btn.setText(">");
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (currentWordIndex < solvedWordCount - 1) {
+                            currentWordIndex++;
+                            renderUIOnUIThread();
+                        }
                     }
-                }
-            });
-            ll.addView(btn);
+                });
+                ll.addView(btn);
 
-            btn = new Button(this);
-            btn.setText(">>");
-            btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (currentSolutionIndex < solutions.size() - 1) {
-                        currentSolutionIndex++;
-                        renderUIOnUIThread();
+                btn = new Button(this);
+                btn.setText(">>");
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (currentSolutionIndex < shownSolutions.size() - 1) {
+                            currentSolutionIndex++;
+                            renderUIOnUIThread();
+                        }
                     }
-                }
-            });
-            ll.addView(btn);
+                });
+                ll.addView(btn);
 
-            baseLayout.addView(ll);
+                baseLayout.addView(ll);
 
-            tv = new TextView(this);
-            tv.setText(getString(R.string.ui_results_solution) + ": " + (currentSolutionIndex + 1) + ", " + getString(R.string.ui_results_word) + ": " + (currentWordIndex + 1));
-            baseLayout.addView(tv);
+                tv = new TextView(this);
+                tv.setText(getString(R.string.ui_results_solution) + ": " + (currentSolutionIndex + 1) + ", " + getString(R.string.ui_results_word) + ": " + (currentWordIndex + 1));
+                baseLayout.addView(tv);
 
-            if (solutions.size() > 0) {
-                Solution currentSolution = solutions.get(currentSolutionIndex);
-                for (int i = 1; i < lastProblem.getWordCount() - currentWordIndex; i++) {
+                Solution currentSolution = shownSolutions.get(currentSolutionIndex);
+                for (int i = 1; i < solvedWordCount - currentWordIndex; i++) {
                     currentSolution = currentSolution.previousSolution;
                 }
+
+                shownSolution = currentSolution;
 
                 int height = currentSolution.lettersBeforeSolution.length;
                 int width = currentSolution.lettersBeforeSolution[0].length;
@@ -185,6 +214,67 @@ public class MainActivity extends AppCompatActivity {
                 tv = new TextView(this);
                 tv.setText(currentSolution.foundWord);
                 baseLayout.addView(tv);
+
+                ll = new LinearLayout(this);
+                ll.setOrientation(LinearLayout.HORIZONTAL);
+
+                btn = new Button(this);
+                btn.setText(R.string.ui_results_correct);
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        // add correct logic
+
+                        // stop user from hitting button right after UI update
+                        long now = Calendar.getInstance().getTimeInMillis();
+                        if ((now - startTime) < 500)
+                            return;
+
+                        for (Solution s : shownSolutions) {
+                            for (int i = 1; i < solvedWordCount - currentWordIndex; i++) {
+                                s = s.previousSolution;
+                            }
+                            if (!shownSolution.foundWord.equals(s.foundWord))
+                                s.setSolutionInvalid();
+                        }
+
+                        currentWordIndex++;
+
+                        if (currentWordIndex >= lastProblem.getWordCount()) {
+                            // exit on last word correct
+                            latestSolutions = null;
+                        }
+
+                        renderUIOnUIThread();
+                    }
+                });
+                ll.addView(btn);
+
+                btn = new Button(this);
+                btn.setText(R.string.ui_results_wrong);
+                btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        // add wrong logic
+
+                        // stop user from hitting button right after UI update
+                        long now = Calendar.getInstance().getTimeInMillis();
+                        if ((now - startTime) < 500)
+                            return;
+
+                        for (Solution s : shownSolutions) {
+                            for (int i = 1; i < solvedWordCount - currentWordIndex; i++) {
+                                s = s.previousSolution;
+                            }
+                            if (shownSolution.foundWord.equals(s.foundWord))
+                                s.setSolutionInvalid();
+                        }
+                        renderUIOnUIThread();
+                    }
+                });
+                ll.addView(btn);
+
+                baseLayout.addView(ll);
             }
 
             btn = new Button(this);
@@ -192,8 +282,14 @@ public class MainActivity extends AppCompatActivity {
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    // stop all solving (if any)
+                    continueSolving = false;
+                    for (Solution s : shownSolutions) {
+                        s.setSolutionInvalid();
+                    }
+
                     lastProblem = null;
-                    solutions = null;
+                    latestSolutions = null;
                     currentSolutionIndex = 0;
                     currentWordIndex = 0;
                     renderUIOnUIThread();
@@ -247,6 +343,7 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
 
+                    continueSolving = true;
                     final String problem = problemEdit.getText().toString();
                     final String lengths = lengthsEdit.getText().toString();
                     MainActivity.this.problemSolver = new Thread(new Runnable() {
@@ -466,6 +563,9 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.v("solveProblem", "H:" + problem.getMatrix().getHeigth() + ";W:" + problem.getMatrix().getWidth());
 
+        lastProblem = problem;
+        currentSolutionIndex = 0;
+        currentWordIndex = 0;
         showToast(R.string.ui_toast_start_solving, false);
 
         // TODO: actual solving process
@@ -481,7 +581,7 @@ public class MainActivity extends AppCompatActivity {
         int length = problem.buildProblemWordlist(); // this call is for debug purposes, .buildWordWordlist() would also call this (once)
         Log.v("solveProblem", "Problem wordlist has " + length + " / " + wordlist.size() + " words");
 
-        for (int i = 0; i < problem.getWordCount(); i++) {
+        for (int i = 0; i < problem.getWordCount() && continueSolving; i++) {
             length = problem.buildWordWordlist();
             Log.v("solveProblem", "Word wordlist has " + length + " words");
 
@@ -494,23 +594,31 @@ public class MainActivity extends AppCompatActivity {
 
             problem.waitForSolvers();
 
-            if (!problem.isWordSolved(i)) {
-                showToast(String.format(getString(R.string.ui_toast_error_word_not_found), i+1), true);
-                Log.w("solveProblem", "Could not solve word " + (i+1));
-                break;
-            }
+            if (continueSolving)
+                if (!problem.isWordSolved(i)) {
+                    showToast(String.format(getString(R.string.ui_toast_error_word_not_found), i+1), true);
+                    Log.w("solveProblem", "Could not solve word " + (i+1));
+                    break;
+                } else {
+                    // show (only) intermediate results to the user
+                    solvedWordCount = i + 1;
+                    if (i < problem.getWordCount() - 1) {
+                        latestSolutions = problem.getLatestResults();
+                        Log.v("solveProblem", "Got " + latestSolutions.size() + " intermediate results (word " + (i+1) + ")!");
+                        renderUIOnUIThread();
+                    }
+                }
         }
 
         // END OF SOLVING
 
-        solutions = problem.getFinalResults();
-        currentSolutionIndex = 0;
-        currentWordIndex = 0;
-        lastProblem = problem;
-        Log.v("solveProblem", "Got " + solutions.size() + " results!");
+        if (continueSolving) {
+            latestSolutions = problem.getFinalResults();
+            Log.v("solveProblem", "Got " + latestSolutions.size() + " results!");
 
-        // show results
-        renderUIOnUIThread();
+            // show results
+            renderUIOnUIThread();
+        }
 
         this.problemSolver = null;
     }
