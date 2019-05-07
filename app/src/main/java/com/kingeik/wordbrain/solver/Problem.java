@@ -1,6 +1,7 @@
 package com.kingeik.wordbrain.solver;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -105,6 +106,21 @@ class Problem {
             return words[index].getPossibleSolutions();
         }
         return null;
+    }
+
+    public boolean setHintForWord(int index, String hint) {
+        if (index >= 0 && index < words.length) {
+            return words[index].setHint(hint);
+        }
+        return false;
+    }
+
+    public String getLengthString() {
+        String[] rawWords = new String[words.length];
+        for (int i = 0; i < words.length; i++) {
+            rawWords[i] = words[i].getRawWord();
+        }
+        return TextUtils.join(",", rawWords);
     }
 
     private void refreshWordLengths() {

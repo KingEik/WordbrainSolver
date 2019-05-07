@@ -126,4 +126,20 @@ class Word {
         }
     }
 
+    public boolean setHint(String hint) {
+        if (isSolved || hint.length() != length) {
+            return false;
+        }
+
+        rawWord = hint;
+        hasHints = true;
+        isSolved = true;
+
+        return true;
+    }
+
+    public String getRawWord() {
+        return rawWord;
+    }
+
 }

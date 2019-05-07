@@ -1,9 +1,11 @@
 package com.kingeik.wordbrain.solver;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -46,19 +48,19 @@ public class MainActivity extends AppCompatActivity {
 
         baseLayout = findViewById(R.id.baseLayout);
 
-        renderUI();
+        renderUI(false);
     }
 
-    private void renderUIOnUIThread() {
+    private void renderUIOnUIThread(final boolean lockInputs) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                renderUI();
+                renderUI(lockInputs);
             }
         });
     }
 
-    private void renderUI() {
+    private void renderUI(final boolean lockInputs) {
 
         File wordlist = new File(getFilesDir(), "words.bin");
         baseLayout.removeAllViews();
@@ -137,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View view) {
                         if (currentSolutionIndex > 0) {
                             currentSolutionIndex--;
-                            renderUIOnUIThread();
+                            renderUIOnUIThread(false);
                         }
                     }
                 });
@@ -150,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View view) {
                         if (currentWordIndex > 0) {
                             currentWordIndex--;
-                            renderUIOnUIThread();
+                            renderUIOnUIThread(false);
                         }
                     }
                 });
@@ -163,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View view) {
                         if (currentWordIndex < solvedWordCount - 1) {
                             currentWordIndex++;
-                            renderUIOnUIThread();
+                            renderUIOnUIThread(false);
                         }
                     }
                 });
@@ -176,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View view) {
                         if (currentSolutionIndex < shownSolutions.size() - 1) {
                             currentSolutionIndex++;
-                            renderUIOnUIThread();
+                            renderUIOnUIThread(false);
                         }
                     }
                 });
@@ -227,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
 
                         // stop user from hitting button right after UI update
                         long now = Calendar.getInstance().getTimeInMillis();
-                        if ((now - startTime) < 500)
+                        if (lockInputs && (now - startTime) < 300)
                             return;
 
                         for (Solution s : shownSolutions) {
@@ -238,6 +240,13 @@ public class MainActivity extends AppCompatActivity {
                                 s.setSolutionInvalid();
                         }
 
+                        lastProblem.setHintForWord(currentWordIndex, shownSolution.foundWord);
+
+                        SharedPreferences sp = MainActivity.this.getApplicationContext().getSharedPreferences("lastProblem", MODE_PRIVATE);
+                        SharedPreferences.Editor edit = sp.edit();
+                        edit.putString("lengths", lastProblem.getLengthString());
+                        edit.apply();
+
                         currentWordIndex++;
 
                         if (currentWordIndex >= lastProblem.getWordCount()) {
@@ -245,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
                             latestSolutions = null;
                         }
 
-                        renderUIOnUIThread();
+                        renderUIOnUIThread(false);
                     }
                 });
                 ll.addView(btn);
@@ -259,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
 
                         // stop user from hitting button right after UI update
                         long now = Calendar.getInstance().getTimeInMillis();
-                        if ((now - startTime) < 500)
+                        if (lockInputs && (now - startTime) < 300)
                             return;
 
                         for (Solution s : shownSolutions) {
@@ -269,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
                             if (shownSolution.foundWord.equals(s.foundWord))
                                 s.setSolutionInvalid();
                         }
-                        renderUIOnUIThread();
+                        renderUIOnUIThread(false);
                     }
                 });
                 ll.addView(btn);
@@ -292,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
                     latestSolutions = null;
                     currentSolutionIndex = 0;
                     currentWordIndex = 0;
-                    renderUIOnUIThread();
+                    renderUIOnUIThread(false);
                 }
             });
             baseLayout.addView(btn);
@@ -315,17 +324,23 @@ public class MainActivity extends AppCompatActivity {
             tv.setText(R.string.ui_got_wordlist);
             baseLayout.addView(tv);
 
+            SharedPreferences sp = MainActivity.this.getApplicationContext().getSharedPreferences("lastProblem", MODE_PRIVATE);
+            String lastProblem = sp.getString("problem", "");
+            String lastLengths = sp.getString("lengths", "");
+
             final EditText problemEdit = new EditText(this);
             problemEdit.setInputType(EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS | EditorInfo.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             problemEdit.setSingleLine(false);
             problemEdit.setHint(R.string.ui_hint_problem);
             problemEdit.setTypeface(Typeface.MONOSPACE);
+            problemEdit.setText(lastProblem);
             baseLayout.addView(problemEdit);
 
             final EditText lengthsEdit = new EditText(this);
             lengthsEdit.setInputType(EditorInfo.TYPE_TEXT_FLAG_NO_SUGGESTIONS | EditorInfo.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
             lengthsEdit.setSingleLine(true);
             lengthsEdit.setHint(R.string.ui_hint_lengths);
+            lengthsEdit.setText(lastLengths);
             baseLayout.addView(lengthsEdit);
 
             Button btn = new Button(this);
@@ -346,6 +361,13 @@ public class MainActivity extends AppCompatActivity {
                     continueSolving = true;
                     final String problem = problemEdit.getText().toString();
                     final String lengths = lengthsEdit.getText().toString();
+
+                    SharedPreferences sp = MainActivity.this.getApplicationContext().getSharedPreferences("lastProblem", MODE_PRIVATE);
+                    SharedPreferences.Editor edit = sp.edit();
+                    edit.putString("problem", problem);
+                    edit.putString("lengths", lengths);
+                    edit.apply();
+
                     MainActivity.this.problemSolver = new Thread(new Runnable() {
                         @Override
                         public void run() {
@@ -420,7 +442,7 @@ public class MainActivity extends AppCompatActivity {
         this.wordlistLoader = null;
     }
 
-    private void buildWordlist(Uri sourceFile) {
+    private void buildWordlist(@NonNull Uri sourceFile) {
 
         Log.v("buildWordlist", "starting, file is " + sourceFile.toString());
 
@@ -541,7 +563,7 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.wordlist = words;
 
         showToast(R.string.ui_toast_success, true);
-        renderUIOnUIThread();
+        renderUIOnUIThread(true);
     }
 
     private void solveProblem(String problemString, String lenghts) {
@@ -605,7 +627,7 @@ public class MainActivity extends AppCompatActivity {
                     if (i < problem.getWordCount() - 1) {
                         latestSolutions = problem.getLatestResults();
                         Log.v("solveProblem", "Got " + latestSolutions.size() + " intermediate results (word " + (i+1) + ")!");
-                        renderUIOnUIThread();
+                        renderUIOnUIThread(true);
                     }
                 }
         }
@@ -617,7 +639,7 @@ public class MainActivity extends AppCompatActivity {
             Log.v("solveProblem", "Got " + latestSolutions.size() + " results!");
 
             // show results
-            renderUIOnUIThread();
+            renderUIOnUIThread(true);
         }
 
         this.problemSolver = null;
